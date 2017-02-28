@@ -1,7 +1,7 @@
 Global Definitions
 
 This directory contains templates that describe the common elements of this
-deployments, to be shared (and possibly overridden) by sites and environments.
+deployment, to be shared (and possibly overridden) by sites and environments.
 The templates are merged in the following order:
 
   global/jobs.yml             Specify what jobs will make up the canonical
