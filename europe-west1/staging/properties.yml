@@ -1,0 +1,40 @@
+---
+meta:
+  google:
+    region: europe-west1
+    zones:
+      z1: (( concat meta.google.region "-b" ))
+      z2: (( concat meta.google.region "-c" ))
+      z3: (( concat meta.google.region "-d" ))
+  skip_ssl_validation: true
+  cf:
+    blobstore_config:
+      fog_connection:
+        google_storage_access_key_id: (( vault "secret/google/gcs:access_key" ))
+        google_storage_secret_access_key: (( vault "secret/google/gcs:secret_key"))
+    base_bucket: mybucket
+
+properties:
+  router:
+    enable_ssl: true
+    ssl_cert: (( vault meta.vault_prefix "/tls/domain:crt" ))
+    ssl_key: (( vault meta.vault_prefix "/tls/domain:key" ))
+    ssl_skip_validation: true
+  cc:
+    security_group_definitions:
+    - name: load_balancer
+      rules: []
+    - name: services
+      rules:
+      - destination: 10.4.42.0-10.4.44.255
+        protocol: all
+    - name: user_bosh_deployments
+      rules: []
+    buildpacks:
+      buildpack_directory_key: (( concat meta.cf.base_bucket "-cc-buildpacks" ))
+    droplets:
+      droplet_directory_key: (( concat meta.cf.base_bucket "-cc-droplets" ))
+    packages:
+      app_package_directory_key: (( concat meta.cf.base_bucket "-cc-packages" ))
+    resource_pool:
+      resource_directory_key: (( concat meta.cf.base_bucket "-cc-resources" ))

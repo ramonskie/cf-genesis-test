@@ -1,0 +1,106 @@
+---
+meta:
+  target_pool: snw-staging-cf # <- your staging-cf target pool
+  target_pool_ssh: snw-staging-cf-ssh # <- your staging-cf-ssh target pool
+  cf:
+    base_domain: 104.199.42.214.xip.io # <- your staging-cf target pool IP address
+
+networks:
+  - name: router1
+    subnets:
+      - range: 10.4.35.0/25
+        gateway: 10.4.35.1
+        static:
+          - 10.4.35.2 - 10.4.35.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-edge-0 # <- your staging-cf-edge-0 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+            - snw-staging-external # <- your staging-external firewall name
+  - name: router2
+    subnets:
+      - range: 10.4.35.128/25
+        gateway: 10.4.35.129
+        static:
+          - 10.4.35.130 - 10.4.35.227
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-edge-1 # <- your staging-cf-edge-1 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+            - snw-staging-external # <- your staging-external firewall name
+  - name: cf1
+    subnets:
+      - range: 10.4.36.0/24
+        gateway: 10.4.36.1
+        static:
+          - 10.4.36.2 - 10.4.36.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-core-0 # <- your staging-cf-core-0 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+  - name: cf2
+    subnets:
+      - range: 10.4.37.0/24
+        gateway: 10.4.37.1
+        static:
+          - 10.4.37.2 - 10.4.37.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-core-1 # <- your staging-cf-core-1 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+  - name: cf3
+    subnets:
+      - range: 10.4.38.0/24
+        gateway: 10.4.38.1
+        static:
+          - 10.4.38.2 - 10.4.38.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-core-2 # <- your staging-cf-core-2 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+  - name: runner1
+    subnets:
+      - range: 10.4.39.0/24
+        gateway: 10.4.39.1
+        static:
+          - 10.4.39.2 - 10.4.39.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-runtime-0 # <- your staging-cf-runtime-0 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+  - name: runner2
+    subnets:
+      - range: 10.4.40.0/24
+        gateway: 10.4.40.1
+        static:
+          - 10.4.40.2 - 10.4.40.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-runtime-1 # <- your staging-cf-runtime-1 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name
+  - name: runner3
+    subnets:
+      - range: 10.4.41.0/24
+        gateway: 10.4.41.1
+        static:
+          - 10.4.41.2 - 10.4.41.100
+        cloud_properties:
+          network_name: snw # <- your network name
+          subnetwork_name: snw-staging-cf-runtime-2 # <- your staging-cf-runtime-2 subnetwork name
+          ephemeral_external_ip: true
+          tags:
+            - snw-staging-internal # <- your staging-internal firewall name

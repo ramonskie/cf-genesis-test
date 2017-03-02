@@ -1,0 +1,7 @@
+---
+name: europe-west1-staging-cf
+meta:
+  type: cf
+  site: europe-west1
+  env:  staging
+  vault_prefix: secret/europe-west1/staging/cf
