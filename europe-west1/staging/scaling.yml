@@ -1,1 +1,21 @@
---- {}
+meta:
+
+  resource_pools:
+    small:
+      cloud_properties:
+        machine_type: n1-standard-1
+    medium:
+      cloud_properties:
+        machine_type: n1-standard-1
+    large:
+      cloud_properties:
+        machine_type: n1-standard-1
+    router:
+      cloud_properties:
+        machine_type: n1-standard-1
+    access:
+      cloud_properties:
+        machine_type: n1-standard-1
+    runner:
+      cloud_properties:
+        machine_type: n1-standard-1
