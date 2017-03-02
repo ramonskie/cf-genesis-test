@@ -132,6 +132,7 @@ jobs:
         CI_WAIT_FOR_CLEAN_BOSH: false
         LOCAL_CHANGES: local-changes
         VAULT_ADDR: https://10.4.1.16:8200
+        VAULT_SKIP_VERIFY: 1
         WORKING_DIR: out/git
         WORLD_CHANGES: world-changes
       platform: linux
@@ -222,6 +223,7 @@ jobs:
         CI_WAIT_FOR_CLEAN_BOSH: false
         LOCAL_CHANGES: local-changes
         VAULT_ADDR: https://10.4.1.16:8200
+        VAULT_SKIP_VERIFY: 1
         WORKING_DIR: out/git
         WORLD_CHANGES: world-changes
       platform: linux
