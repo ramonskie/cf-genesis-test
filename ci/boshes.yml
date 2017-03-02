@@ -1,0 +1,34 @@
+---
+aliases:
+  # NOTE: if you're making use of , you will
+  #       also need to add aliases for the name of the bosh deployment -> addr
+  #       (e.g. vsphere-prod-bosh -> https://10.4.16.4:25555)
+  target: (( param "Please define aliases for your BOSH directors (uuid -> addr)" ))
+
+
+# BOSH directors are specified by `url: username / password`
+# (just like in ~/.bosh_config's auth section), i.e.:
+#
+#aliases:
+#  target:
+#    DIRECTOR-UUID: https://ip.ad.dr.ess:25555
+#    DIRECTOR-NAME: https://ip.ad.dr.ess:25555
+#auth:
+#  https://ip.ad.dr.ess:25555:
+#    username: admin
+#    password: (( vault "this/should/probably/be/in/vault" ))
+#
+aliases:
+  target:
+    alpha: https://10.4.1.80:25555
+    662f55a2-460c-41f3-8e0e-27c5774332bf: https://10.4.1.80:25555
+    staging: https://10.4.32.2:25555
+    1cff8131-0fe5-4696-a479-13c23e8e24b3: https://10.4.32.2:25555
+    proto: https://10.4.1.2:25555
+auth:
+  https://10.4.1.80:25555:
+    username: admin
+    password: M4b9OlywedrAuWc7pPSnYyR4n54nNI
+  https://10.4.32.2:25555:
+    username: admin
+    password: QjRKDj5BPBU2yfJ3K2jVa5XkcLKiwA

@@ -1,0 +1,464 @@
+groups:
+- jobs:
+  - stemcells
+  - bosh-lite-alpha
+  - europe-west1-staging
+  name: '*'
+- jobs:
+  - stemcells
+  name: upkeep
+- jobs:
+  - bosh-lite-alpha
+  name: α
+- jobs:
+  - bosh-lite-alpha
+  - europe-west1-staging
+  name: β
+- jobs:
+  - bosh-lite-alpha
+  - europe-west1-staging
+  name: europe-west1
+jobs:
+- name: stemcells
+  plan:
+  - aggregate:
+    - get: git
+    - get: bosh-google-kvm-ubuntu-trusty-go_agent
+      params:
+        tarball: true
+      trigger: true
+    - get: warden-stemcell
+      params:
+        tarball: true
+      trigger: true
+  - config:
+      image_resource:
+        source:
+          repository: starkandwayne/concourse
+        type: docker-image
+      inputs:
+      - name: git
+      - name: bosh-google-kvm-ubuntu-trusty-go_agent
+        path: stemcells/bosh-google-kvm-ubuntu-trusty-go_agent
+      - name: warden-stemcell
+        path: stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
+      outputs:
+      - name: out
+      params:
+        REPO_OUT: out/git
+        STEMCELLS: stemcells
+      platform: linux
+      run:
+        args:
+        - ci
+        - stemcells
+        path: git/bin/genesis
+    task: update
+  - params:
+      rebase: true
+      repository: out/git
+    put: git
+  public: true
+  serial: true
+- name: bosh-lite-alpha
+  plan:
+  - aggregate:
+    - get: world-changes
+      resource: global-changes
+      trigger: true
+    - get: local-changes
+      resource: bosh-lite-alpha-changes
+      trigger: true
+  - config:
+      image_resource:
+        source:
+          repository: starkandwayne/concourse
+          tag: latest
+        type: docker-image
+      inputs:
+      - name: world-changes
+      - name: local-changes
+      outputs:
+      - name: out
+      params:
+        CI_BOSHES: |
+          aliases:
+            target:
+              1cff8131-0fe5-4696-a479-13c23e8e24b3: https://10.4.32.2:25555
+              662f55a2-460c-41f3-8e0e-27c5774332bf: https://10.4.1.80:25555
+              alpha: https://10.4.1.80:25555
+              proto: https://10.4.1.2:25555
+              staging: https://10.4.32.2:25555
+          auth:
+            https://10.4.1.80:25555:
+              password: M4b9OlywedrAuWc7pPSnYyR4n54nNI
+              username: admin
+            https://10.4.32.2:25555:
+              password: QjRKDj5BPBU2yfJ3K2jVa5XkcLKiwA
+              username: admin
+        CI_BRANCH: master
+        CI_PIPELINE: ""
+        CI_PRIVATE_KEY: |
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+          /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+          Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+          t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+          iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+          TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+          fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+          veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+          hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+          J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+          QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+          j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+          SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+          LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+          Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+          e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+          /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+          8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+          eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+          2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+          N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+          sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+          hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+          OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+          Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+          -----END RSA PRIVATE KEY-----
+        CI_SITE_ENV: bosh-lite/alpha
+        CI_VAULT_APP_ID: concourse
+        CI_VAULT_USER_ID: cf-pipeline
+        CI_WAIT_FOR_CLEAN_BOSH: false
+        LOCAL_CHANGES: local-changes
+        VAULT_ADDR: https://10.4.1.16:8200
+        WORKING_DIR: out/git
+        WORLD_CHANGES: world-changes
+      platform: linux
+      run:
+        args:
+        - ci
+        - stage1
+        path: world-changes/bin/genesis
+    tags: null
+    task: bosh-lite-alpha
+  - params:
+      rebase: true
+      repository: out/git
+    put: α-changes
+  public: false
+  serial: true
+- name: europe-west1-staging
+  plan:
+  - aggregate:
+    - get: world-changes
+      passed:
+      - bosh-lite-alpha
+      resource: α-changes
+      trigger: true
+    - get: local-changes
+      resource: europe-west1-changes
+      trigger: true
+  - config:
+      image_resource:
+        source:
+          repository: starkandwayne/concourse
+          tag: latest
+        type: docker-image
+      inputs:
+      - name: world-changes
+      - name: local-changes
+      outputs:
+      - name: out
+      params:
+        CI_BOSHES: |
+          aliases:
+            target:
+              1cff8131-0fe5-4696-a479-13c23e8e24b3: https://10.4.32.2:25555
+              662f55a2-460c-41f3-8e0e-27c5774332bf: https://10.4.1.80:25555
+              alpha: https://10.4.1.80:25555
+              proto: https://10.4.1.2:25555
+              staging: https://10.4.32.2:25555
+          auth:
+            https://10.4.1.80:25555:
+              password: M4b9OlywedrAuWc7pPSnYyR4n54nNI
+              username: admin
+            https://10.4.32.2:25555:
+              password: QjRKDj5BPBU2yfJ3K2jVa5XkcLKiwA
+              username: admin
+        CI_BRANCH: master
+        CI_PIPELINE: ""
+        CI_PRIVATE_KEY: |
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+          /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+          Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+          t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+          iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+          TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+          fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+          veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+          hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+          J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+          QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+          j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+          SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+          LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+          Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+          e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+          /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+          8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+          eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+          2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+          N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+          sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+          hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+          OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+          Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+          -----END RSA PRIVATE KEY-----
+        CI_SITE_ENV: europe-west1/staging
+        CI_VAULT_APP_ID: concourse
+        CI_VAULT_USER_ID: cf-pipeline
+        CI_WAIT_FOR_CLEAN_BOSH: false
+        LOCAL_CHANGES: local-changes
+        VAULT_ADDR: https://10.4.1.16:8200
+        WORKING_DIR: out/git
+        WORLD_CHANGES: world-changes
+      platform: linux
+      run:
+        args:
+        - ci
+        - stage1
+        path: world-changes/bin/genesis
+    tags: null
+    task: europe-west1-staging
+  - params:
+      rebase: true
+      repository: out/git
+    put: europe-west1-β-changes
+  public: false
+  serial: true
+resources:
+- name: git
+  source:
+    branch: master
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: global-changes
+  source:
+    branch: master
+    paths:
+    - bin/genesis
+    - global
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: bosh-lite-alpha-changes
+  source:
+    branch: master
+    paths:
+    - bosh-lite/site
+    - bosh-lite/alpha
+    - bosh-lite/alpha/*.yml
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: α-changes
+  source:
+    branch: master
+    paths:
+    - bosh-lite/alpha/.global
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: europe-west1-changes
+  source:
+    branch: master
+    paths:
+    - europe-west1/site
+    - europe-west1/staging
+    - europe-west1/staging/*.yml
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: europe-west1-β-changes
+  source:
+    branch: master
+    paths:
+    - europe-west1/staging/.site
+    - europe-west1/staging/.global
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+    uri: git@github.com:ramonskie/cf-genesis-test
+  type: git
+- name: bosh-google-kvm-ubuntu-trusty-go_agent
+  source:
+    name: bosh-google-kvm-ubuntu-trusty-go_agent
+  type: bosh-io-stemcell
+- name: warden-stemcell
+  source:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  type: bosh-io-stemcell
+

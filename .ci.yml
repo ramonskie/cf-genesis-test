@@ -1,0 +1,10 @@
+alpha: bosh-lite/alpha
+sites:
+  bosh-lite:
+    auto:
+      alpha: true
+  europe-west1:
+    auto:
+      staging: true
+    beta: staging
+

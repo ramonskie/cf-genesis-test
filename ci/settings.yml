@@ -1,0 +1,62 @@
+---
+meta:
+  name: cf
+#  pause_for_existing_bosh_tasks: false
+#
+#  # This is where you set your visibility of the pipeline
+#  public_pipeline: # set to true or false
+#
+#  # This is the name of your fly target
+  target: lite
+#
+#  # A map of name:value environment variables
+#  # that will be made available to the script
+  env:
+    VAULT_ADDR: https://10.4.1.16:8200
+#  # VAULT_SKIP_VERIFY: 1
+#
+  github:
+    owner: ramonskie
+    repo:  cf-genesis-test
+#
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEAzTS7U1q0OMv4X4ZHYvn55ALrnI9gh3wtFXinBuZFP1XtGrZQ
+      /XbPmcExzhIEbsd8Ky+8yaYmd8uDpq0jEj/i0gB/1UpuiUJZMacgDNw9TakS8ZcT
+      Qx0Flbp8EfRuTGBu2PNCkBSOfASM4JcKSxJ4BVfUxa2Ok+zm2WiJ6oe+Rz/8M5wu
+      t1XRCBjS4bYzexuS3T8awZ2NDseEuNwkXGTxhI+Y4xnG9G+IYH3BZ91GIwzGUcfW
+      iTz7zJtlh+xFuY7bx/5MFG8Xayq3DNlCl8CKg6Nh7nd3TDxudsmQyj/eUmE5bo35
+      TJP2BQ3C7j5I5aZSHfJTxbnAAc0+/vKWHuXtLQIDAQABAoIBAQCTeuuKy6ytCUMX
+      fE1AAEKtsb+eBJmupftM7Cq21bY8/8dppFBu6f3oFiZyYRaYe3xtGWEIWAZboIOc
+      veBv1ERzA3LcWyM4ONwbyG5Lb9oLP5Fi2l44pNoHs0BKMy82azQfbi2PmYaR8T9C
+      hqsaK0rhJC/CZqsK+38qD2zXhvmlADi5JjtHYTOA2N6bz1/TVPBQQupxKNcfapSY
+      J6Tk49eDNM46NfQNOXpcuWJH43BZEZUvEc2oHt7FisFFcyqArNNgtEOWP3CRhC2c
+      QYop1biBpCzrizTtXANt67OAcWMGRlqfxkDjdvs6Hc5TCdj921mW+JlVOv+2PuAS
+      j+d2pLFhAoGBAO/hBZHU7ZPJS8ws6YuX4KXmQpDwi1FP0dN52MVjkibvRU0tig/w
+      SviNCc4bma4yBKrkEJnnurWZZ/1ubgjzTA/vHuWS4cK5hv+aybMTJo51mAS2Ff1d
+      LuD5x2zp1RtkcO7TCnlX7Dy3OVl2TlWWsbO/3DWoUlKNkZb2dr4fWig1AoGBANr/
+      Llv67u2EY+ckCO2NH2o6JEVP2XkJV1Fug9BNaAQbufVGN2MfvrWyZdoEhDR+AieA
+      e7wKpgm3NNODTqiWJx7M91tce/5n8iwG1fOPc127p65KyfKiUfMSPAswgnu1mJXW
+      /xMik8i2SvBaWlv1PzPU8jpS+IjxjvhA1daluAAZAoGBANb05nDQRjVw5SOJ+57D
+      8uO3e182ryGmTXkcb0wy9f093PRUIqw1wHkKqgawZP7cg6I/zUCdj4q8dZt9Ic2T
+      eE2vEhjXjsdYSckzhBucxahTaG6QXRQ2NJQWQMcwo29wimL5ayFh0Kh36ERq57d6
+      2rMg8syCkYK4qgaFxdKJddkhAoGBAMI47NmgnARElQGq4Mwli8X/WKmsHpiM40cS
+      N48nB2gVWwAfzQF5Zv7oABKyTLntQ2XbOmHUI9ucAxrPapRzzrAvYfVB+anwcEQB
+      sAB5qfxocFdQdvhcY0erVVsrI54puPCzI7fJw72PhrjRuS+zOuFyK330lf2GFqEv
+      hzb99EkJAoGAHmCSKKzDj0wpc1066KqQQn652jxDINgF9iZeC4TVvIgY3oKDOVhZ
+      OQ76YJMqaoCuy1zXd4j+qMKi4+HrMx/laFnHjXAmcT5rX+4PoUQtzIYSfpRXihBj
+      Kyb9tYQeOuORFFEDHw8xsphMO+PCrPFWUyW1swEscq3dH7CLe7u3ddc=
+      -----END RSA PRIVATE KEY-----
+#
+#    # Optional branch to track for changes.
+#    # (defaults to "master")
+#    #branch: master
+#
+  slack:
+    webhook: https://slack/web/hook/url
+    channel: '#name' # or '@user'
+#
+#    # Optional name/icon to use for posting the notification.
+#    #username: runwaybot
+#    #icon: http://ip.ad.dr.ess/of/icon.gif
+#
